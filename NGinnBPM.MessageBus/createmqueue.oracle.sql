@@ -4,6 +4,7 @@
   to_endpoint VARCHAR(50) NOT NULL,
   subqueue CHAR(1) NOT NULL,
   insert_time DATE NOT NULL,
+  priority NUMBER(2) NOT NULL,
   last_processed DATE NULL,
   retry_time DATE NOT NULL,
   retry_count NUMBER(2) NOT NULL,
@@ -15,7 +16,7 @@
   unique_id VARCHAR2(40) NULL
   )
 --- --- ---
-create index IDX_{0}_retr on {0} (subqueue, retry_time) 
+create index IDX_{0}_retr on {0} (subqueue, retry_time, priority) 
 --- --- ---
   CREATE  SEQUENCE SEQ_{0}
 --- --- ---

@@ -6,6 +6,7 @@ CREATE TABLE [dbo].[{0}](
 	[to_endpoint] [varchar](50) NOT NULL,
 	[subqueue] [char](1) NOT NULL,
 	[insert_time] [datetime] NOT NULL,
+	[priority] [int] NOT NULL,
 	[last_processed] [datetime] NULL,
 	[retry_count] [int] NOT NULL,
 	[retry_time] [datetime] NOT NULL,
@@ -24,7 +25,8 @@ CREATE TABLE [dbo].[{0}](
 CREATE NONCLUSTERED INDEX [IDX_{0}_subqueue_retry_time] ON [dbo].[{0}] 
 (
 	[subqueue] ASC,
-	[retry_time] ASC
+	[retry_time] ASC,
+	[priority] DESC
 )
 INCLUDE(id)
 WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) 

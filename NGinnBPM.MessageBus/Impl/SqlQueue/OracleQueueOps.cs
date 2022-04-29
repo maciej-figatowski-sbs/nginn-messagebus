@@ -41,6 +41,7 @@ namespace NGinnBPM.MessageBus.Impl.SqlQueue
                         _sql.AddParameter(cmd, "from_endpoint", mw.From);
                         _sql.AddParameter(cmd, "to_endpoint", mw.To == null ? "" : mw.To);
                         _sql.AddParameter(cmd, "subqueue", mw.IsScheduled ? "R" : "I");
+                        _sql.AddParameter(cmd, "priority", mw.Priority);
                         _sql.AddParameter(cmd, "retry_time", mw.IsScheduled ? mw.DeliverAt : (mw.HiPriority ? DateTime.Now.AddHours(-24) : DateTime.Now));
                         _sql.AddParameter(cmd, "msgtext", mw.BodyStr);
                         _sql.AddParameter(cmd, "correl_id", mw.CorrelationId);

@@ -150,7 +150,7 @@ namespace NGinnBPM.MessageBus.Impl
         /// <param name="mc"></param>
         protected virtual void DispatchIncomingMessage(MessageContainer mc)
         {
-            log.Debug("MB {2} Dispatching incoming message {0}/{1}/{3}", mc.To, mc.BusMessageId, this.Endpoint, mc.Body.GetType().Name);
+            log.Debug("MB {2} Dispatching incoming message {0}/{1}/{3}, transaction: {4},{5}", mc.To, mc.BusMessageId, this.Endpoint, mc.Body.GetType().Name, UseTransactionScope, Transaction.Current == null ? "" : Transaction.Current.TransactionInformation.Status.ToString());
             try
             {
                 MessageBusContext.CurrentMessageBus = this;
@@ -223,12 +223,37 @@ namespace NGinnBPM.MessageBus.Impl
             Notify(new object[] { msg });
         }
 
+        public void Notify(object msg, int priority)
+        {
+            Notify(new object[] { msg }, priority);
+        }
+
+        public void Notify(object msg, DeliveryMode mode)
+        {
+            Notify(new object[] { msg }, mode);
+        }
+
+        public void Notify(object msg, DeliveryMode mode, int priority)
+        {
+            Notify(new object[] { msg }, mode, priority);
+        }
+
         public void Notify(object[] msgs)
         {
             Notify(msgs, DeliveryMode.DurableAsync);
         }
 
+        public void Notify(object[] msgs, int priority)
+        {
+            Notify(msgs, DeliveryMode.DurableAsync, priority);
+        }
+
         private void Notify(object[] msgs, DeliveryMode mode)
+        {
+            Notify(msgs, mode, 0);
+        }
+
+        private void Notify(object[] msgs, DeliveryMode mode, int priority)
         {
             foreach (var msg in msgs)
             {
@@ -241,6 +266,7 @@ namespace NGinnBPM.MessageBus.Impl
                 mc.From = Endpoint;
                 mc.To = Endpoint;
                 mc.Body = obj;
+                mc.Priority = priority;
                 mc.UniqueId = CreateNewMessageUniqueId();
                 lst.Add(mc);
             }
@@ -373,10 +399,20 @@ namespace NGinnBPM.MessageBus.Impl
 
         public void Send(string destination, object msg)
         {
-            Send(destination, new object[] { msg });
+            Send(destination, new object[] { msg }, 0);
+        }
+
+        public void Send(string destination, object msg, int priority)
+        {
+            Send(destination, new object[] { msg }, priority);
         }
 
         public void Send(string destination, object[] msgs)
+        {
+            Send(destination, msgs, 0);
+        }
+
+        public void Send(string destination, object[] msgs, int priority)
         {
             foreach (var msg in msgs)
             {
@@ -390,6 +426,7 @@ namespace NGinnBPM.MessageBus.Impl
                 MessageContainer mc = new MessageContainer();
                 mc.From = MessageTransport.Endpoint;
                 mc.To = destination;
+                mc.Priority = priority;
                 mc.UniqueId = CreateNewMessageUniqueId();
                 mc.Body = obj;
                 lst.Add(mc);
@@ -449,21 +486,37 @@ namespace NGinnBPM.MessageBus.Impl
 
         public void NotifyAt(DateTime deliverAt, object msg)
         {
-            NewMessage(msg).SetDeliveryDate(deliverAt).Publish();
+            NotifyAt(deliverAt, msg, 0);
+        }
+
+        public void NotifyAt(DateTime deliverAt, object msg, int priority)
+        {
+            NewMessage(msg).SetDeliveryDate(deliverAt).SetPriority(priority).Publish();
         }
 
         public void SendAt(DateTime deliverAt, string destination, object msg)
         {
-            NewMessage(msg).SetDeliveryDate(deliverAt).Send(destination);
+            SendAt(deliverAt, destination, msg, 0);
+        }
+
+        public void SendAt(DateTime deliverAt, string destination, object msg, int priority)
+        {
+            NewMessage(msg).SetDeliveryDate(deliverAt).SetPriority(priority).Send(destination);
         }
 
         public void Reply(object msg)
+        {
+            Reply(msg, 0);
+        }
+
+        public void Reply(object msg, int priority)
         {
             if (_currentMessage.DeliveryMode != DeliveryMode.DurableAsync)
             {
                 NewMessage(msg)
                     .SetCorrelationId(CurrentMessageInfo.CorrelationId)
                     .SetDeliveryMode(_currentMessage.DeliveryMode)
+                    .SetPriority(priority)
                     .Publish();
             }
             else
@@ -473,6 +526,7 @@ namespace NGinnBPM.MessageBus.Impl
                     returnAddr = CurrentMessageInfo.Headers[MessageContainer.HDR_ReplyTo];
                 NewMessage(msg)
                     .SetCorrelationId(CurrentMessageInfo.CorrelationId)
+                    .SetPriority(priority)
                     .Send(returnAddr);
             }
         }
@@ -608,12 +662,6 @@ namespace NGinnBPM.MessageBus.Impl
             get { return _appCon; }
             set { _appCon = value; }
         }
-
-
-        public void Notify(object msg, DeliveryMode mode)
-        {
-            Notify(new object[] {msg}, mode);
-        }
     }
 
     /// <summary>
@@ -658,6 +706,12 @@ namespace NGinnBPM.MessageBus.Impl
         public ISendMessage SetDeliveryDate(DateTime dt)
         {
             mc.DeliverAt = dt;
+            return this;
+        }
+
+        public ISendMessage SetPriority(int priority)
+        {
+            mc.Priority = priority;
             return this;
         }
 
@@ -859,6 +913,11 @@ namespace NGinnBPM.MessageBus.Impl
         /// current message's delivery mode
         /// </summary>
         public DeliveryMode DeliveryMode { get; set; }
+
+        public int Priority
+        {
+            get { return Message.Priority; }
+        }
 
         public bool IsFinalRetry
         {

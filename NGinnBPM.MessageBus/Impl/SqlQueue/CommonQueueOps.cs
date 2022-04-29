@@ -52,6 +52,7 @@ namespace NGinnBPM.MessageBus.Impl.SqlQueue
                     var rc = Convert.ToInt32(dr["retry_count"]);
                     mc.From = Convert.ToString(dr["from_endpoint"]);
                     mc.To = Convert.ToString(dr["to_endpoint"]);
+                    mc.Priority = Convert.ToInt32(dr["priority"]);
                     mc.HeadersString = Convert.ToString(dr["msg_headers"]);
                     mc.SetHeader(MessageContainer.HDR_RetryCount, rc.ToString()); ;
                     mc.CorrelationId = Convert.ToString(dr["correlation_id"]);
@@ -135,6 +136,7 @@ namespace NGinnBPM.MessageBus.Impl.SqlQueue
                             _sql.AddParameter(cmd, "from_endpoint" + cnt, mw.From);
                             _sql.AddParameter(cmd, "to_endpoint" + cnt, mw.To == null ? "" : mw.To);
                             _sql.AddParameter(cmd, "subqueue" + cnt, mw.IsScheduled ? "R" : "I");
+                            _sql.AddParameter(cmd, "priority" + cnt, mw.Priority);
                             _sql.AddParameter(cmd, "retry_time" + cnt, mw.IsScheduled ? mw.DeliverAt : (mw.HiPriority ? DateTime.Now.AddHours(-24) : DateTime.Now));
                             if (!reuseBody)
                             {

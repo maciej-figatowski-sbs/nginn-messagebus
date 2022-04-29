@@ -56,6 +56,11 @@ namespace NGinnBPM.MessageBus.Impl
         [IgnoreDataMember]
         public bool HiPriority { get; set; }
         /// <summary>
+        /// To prioritize messages without hacks
+        /// </summary>
+        [DataMember]
+        public int Priority { get; set; }
+        /// <summary>
         /// Message content serialized into a string
         /// </summary>
         [DataMember]

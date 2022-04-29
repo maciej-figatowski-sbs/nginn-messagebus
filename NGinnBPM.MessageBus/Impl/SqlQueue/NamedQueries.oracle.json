@@ -1,11 +1,11 @@
 ﻿{
-    "SelectAndLockNext1": "select id, correlation_id, from_endpoint, to_endpoint, retry_count, msg_text, msg_headers, unique_id, retry_time from {0} where subqueue='I' and ROWNUM <= 1 order by retry_time  FOR UPDATE SKIP LOCKED",
+    "SelectAndLockNext1": "select id, correlation_id, from_endpoint, to_endpoint, priority, retry_count, msg_text, msg_headers, unique_id, retry_time from {0} where subqueue='I' and ROWNUM <= 1 order by priority DESC, retry_time ASC FOR UPDATE SKIP LOCKED",
     
     "SelectAndLockNext2": "update {0} set subqueue='X', last_processed = SYSDATE where id=:id and subqueue='I'",
     
     "MarkMessageForProcessingLater": "update {0} set retry_time=:retry_time, last_processed=SYSDATE, subqueue='R' where id=:id",
     
-    "InsertMessageBatch_InsertSql": "INSERT INTO {0} (from_endpoint, to_endpoint, subqueue, insert_time, last_processed, retry_count, retry_time, error_info, msg_text,correlation_id,label, msg_headers, unique_id) VALUES (:from_endpoint, :to_endpoint, :subqueue, SYSDATE, null, 0, :retry_time, null, :msgtext, :correl_id, :label, :headers, :unique_id)",
+    "InsertMessageBatch_InsertSql": "INSERT INTO {0} (from_endpoint, to_endpoint, subqueue, insert_time, priority, last_processed, retry_count, retry_time, error_info, msg_text,correlation_id,label, msg_headers, unique_id) VALUES (:from_endpoint, :to_endpoint, :subqueue, SYSDATE, :priority, null, 0, :retry_time, null, :msgtext, :correl_id, :label, :headers, :unique_id)",
     
     "MoveMessageFromRetryToInput": "update {0} set subqueue='I' where id=:id and subqueue='R'",
 	

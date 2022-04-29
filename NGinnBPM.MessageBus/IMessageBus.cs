@@ -12,6 +12,7 @@ namespace NGinnBPM.MessageBus
         string Destination { get; }
         string MessageId { get; }
         string CorrelationId { get; }
+        int Priority { get; }
         IDictionary<string, string> Headers { get; }
         bool IsFinalRetry { get; }
     }
@@ -105,6 +106,12 @@ namespace NGinnBPM.MessageBus
         /// <returns></returns>
         ISendMessage AlsoSendTo(string endpoint);
         /// <summary>
+        /// Not usefull, but to keep for future processing
+        /// </summary>
+        /// <param name="priority">Message priority</param>
+        /// <returns></returns>
+        ISendMessage SetPriority(int priority);
+        /// <summary>
         /// Deliver the message directly to local handlers,
         /// bypassing NGinn Messagebus queue. Message will
         /// not be persisted and will not be retried in case
@@ -158,11 +165,19 @@ namespace NGinnBPM.MessageBus
         void Notify(object msg);
         void Notify(object[] msgs);
         void Notify(object msg, DeliveryMode mode);
+        void Notify(object msg, int priority);
+        void Notify(object[] msgs, int priority);
+        void Notify(object msg, DeliveryMode mode, int priority);
         void Send(string destination, object msg);
         void Send(string destination, object[] msgs);
+        void Send(string destination, object msg, int priority);
+        void Send(string destination, object[] msgs, int priority);
         void NotifyAt(DateTime deliverAt, object msg);
+        void NotifyAt(DateTime deliverAt, object msg, int priority);
         void SendAt(DateTime deliverAt, string destination, object msg);
+        void SendAt(DateTime deliverAt, string destination, object msg, int priority);
         void Reply(object msg);
+        void Reply(object msg, int priority);
         string Endpoint
         {
             get;
