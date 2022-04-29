@@ -548,12 +548,22 @@ namespace NGinnBPM.MessageBus.Windsor
             /// max messages received/second. Unlimited by default.
             /// </summary>
             public double? MaxReceiveFrequency { get; set; }
+            /// <summary>
+            /// override retry times for additional queue.
+            /// </summary>
+            public TimeSpan[] RetryTimes { get; set ; }
         }
         private List<AdditionalSqlBusConfig> _additionalBuses = new List<AdditionalSqlBusConfig>();
 
         public MessageBusConfigurator ConfigureAdditionalSqlMessageBus(string name, string endpoint)
         {
             _additionalBuses.Add(new AdditionalSqlBusConfig { BusName = name, Endpoint = endpoint });
+            return this;
+        }
+        
+        public MessageBusConfigurator ConfigureAdditionalSqlMessageBus(string name, string endpoint, TimeSpan[] retryTimes)
+        {
+            _additionalBuses.Add(new AdditionalSqlBusConfig { BusName = name, Endpoint = endpoint, RetryTimes = retryTimes });
             return this;
         }
         
@@ -585,7 +595,7 @@ namespace NGinnBPM.MessageBus.Windsor
                     ExposeReceiveConnection = ExposeReceiveConnectionToApplication,
                     DefaultTransactionTimeout = TransactionTimeout,
                     UseSqlOutputClause = _useSqlOutputClause,
-                    RetryTimes = _retryTimes
+                    RetryTimes = cfg.RetryTimes != null ? cfg.RetryTimes : _retryTimes
                 })
                 .Named(transName)
                 .LifeStyle.Singleton);
